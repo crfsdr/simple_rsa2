@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:simple_rsa2/simple_rsa2.dart';
-
 
 void main() => runApp(App());
 
@@ -23,8 +20,7 @@ class Home extends StatefulWidget {
 }
 
 class HomeState extends State<Home> {
-
-  final PUBLIC_KEY =
+  static const PUBLIC_KEY =
       "MIIBITANBgkqhkiG9w0BAQEFAAOCAQ4AMIIBCQKCAQBuAGGBgg9nuf6D2c5AIHc8" +
           "vZ6KoVwd0imeFVYbpMdgv4yYi5obtB/VYqLryLsucZLFeko+q1fi871ZzGjFtYXY" +
           "9Hh1Q5e10E5hwN1Tx6nIlIztrh5S9uV4uzAR47k2nng7hh6vuZ33kak2hY940RSL" +
@@ -33,7 +29,7 @@ class HomeState extends State<Home> {
           "u0iQjowgbzt3ASOnvJSpJu/oJ6XrWR3egPoTSx+HyX1dKv9+q7uLl6pXqGVVNs+/" +
           "AgMBAAE=";
 
-  final PRIVATE_KEY =
+  static const PRIVATE_KEY =
       "MIIEoQIBAAKCAQBuAGGBgg9nuf6D2c5AIHc8vZ6KoVwd0imeFVYbpMdgv4yYi5ob" +
           "tB/VYqLryLsucZLFeko+q1fi871ZzGjFtYXY9Hh1Q5e10E5hwN1Tx6nIlIztrh5S" +
           "9uV4uzAR47k2nng7hh6vuZ33kak2hY940RSLH5l9E5cKoUXuQNtrIKTS4kPZ5IOU" +
@@ -91,10 +87,12 @@ class HomeState extends State<Home> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
-                RaisedButton(
+                ElevatedButton(
                   child:
-                  _stringEncoded.isEmpty ? Text("ENCODE") : Text("DECODE"),
-                  color: Colors.yellow,
+                      _stringEncoded.isEmpty ? Text("ENCODE") : Text("DECODE"),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.yellow,
+                  ),
                   onPressed: () async {
                     String tmp = "";
                     try {
@@ -120,15 +118,17 @@ class HomeState extends State<Home> {
                     }
                   },
                 ),
-                RaisedButton(
+                ElevatedButton(
                     child: Text("DECODE"),
-                    color: Colors.red,
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.red,
+                    ),
                     onPressed: () async {
                       String tmp = "";
                       if (_stringEncoded.isNotEmpty) {
                         try {
                           tmp =
-                          await decryptString(_stringEncoded, PRIVATE_KEY);
+                              await decryptString(_stringEncoded, PRIVATE_KEY);
                           setState(() {
                             _stringEncoded = "";
                             myController.text = tmp;
@@ -138,9 +138,11 @@ class HomeState extends State<Home> {
                         }
                       }
                     }),
-                RaisedButton(
+                ElevatedButton(
                   child: Text("RESET"),
-                  color: Colors.blue,
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                  ),
                   onPressed: () {
                     setState(() {
                       _stringEncoded = "";
