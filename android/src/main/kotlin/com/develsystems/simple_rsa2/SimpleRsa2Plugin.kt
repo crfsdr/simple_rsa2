@@ -1,15 +1,12 @@
 package com.develsystems.simple_rsa2
 
-import androidx.annotation.NonNull;
+import android.util.Base64
+import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
-
-import android.util.Base64
-import android.util.Log
 import java.security.*
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
@@ -18,110 +15,97 @@ import javax.crypto.BadPaddingException
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.NoSuchPaddingException
+import kotlin.math.ceil
+import kotlin.math.min
 
 
 /** SimpleRsa2Plugin */
-public class SimpleRsa2Plugin: FlutterPlugin, MethodCallHandler {
+class SimpleRsa2Plugin : FlutterPlugin, MethodCallHandler {
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    val channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "simple_rsa2")
-    channel.setMethodCallHandler(SimpleRsa2Plugin())
-  }
-
-  // This static function is optional and equivalent to onAttachedToEngine. It supports the old
-  // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
-  // plugin registration via this function while apps migrate to use the new Android APIs
-  // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
-  //
-  // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
-  // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
-  // depending on the user's project. onAttachedToEngine or registerWith must both be defined
-  // in the same class.
-  companion object {
-    @JvmStatic
-    fun registerWith(registrar: Registrar) {
-      val channel = MethodChannel(registrar.messenger(), "simple_rsa2")
-      channel.setMethodCallHandler(SimpleRsa2Plugin())
+    MethodChannel(flutterPluginBinding.binaryMessenger, "simple_rsa2").apply {
+      setMethodCallHandler(this@SimpleRsa2Plugin)
     }
   }
+
 
   override fun onMethodCall(call: MethodCall, result: Result) {
     when (call.method) {
       "encrypt" -> {
         val text = call.argument<String>("txt")
         val publicKey = call.argument<String>("publicKey")
-        if (text != null && publicKey != null) {
-          try {
-            val encoded = encryptData(text, publicKey)
-            result.success(encoded)
-          } catch (e: Exception) {
-            e.printStackTrace()
-            result.error("UNAVAILABLE", "Encrypt failure.", null)
-          }
-        }else{
-          result.error("NULL INPUT STRING", "Encrypt failure.", null)
+        if (text == null || publicKey == null) {
+          result.error("NULL INPUT STRING", "Decrypt failure.", null)
+          return
+        }
+        try {
+          val encoded = encryptData(text, publicKey)
+          result.success(encoded)
+        } catch (e: Exception) {
+          e.printStackTrace()
+          result.error("UNAVAILABLE", "Encrypt failure.", null)
         }
       }
       "decrypt" -> {
         val text = call.argument<String>("txt")
         val privateKey = call.argument<String>("privateKey")
-        if (text != null && privateKey != null) {
-          try {
-            val d = Base64.decode(text, Base64.DEFAULT)
-            val output = decryptData(d, privateKey)
-            result.success(output)
-          } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-            result.error("UNAVAILABLE", "Decrypt failure.", null)
-          }
-        } else {
+        if (text == null || privateKey == null) {
           result.error("NULL INPUT STRING", "Decrypt failure.", null)
+          return
+        }
+        try {
+          val d = Base64.decode(text, Base64.DEFAULT)
+          val output = decryptData(d, privateKey)
+          result.success(output)
+        } catch (e: java.lang.Exception) {
+          e.printStackTrace()
+          result.error("UNAVAILABLE", "Decrypt failure.", null)
         }
       }
       "sign" -> {
         val text = call.argument<String>("plainText")
         val privateKey = call.argument<String>("privateKey")
-        if (text != null && privateKey != null) {
-          try {
-            val output = signData(text, privateKey)
-            result.success(output)
-          } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-            result.error("UNAVAILABLE", "Sign failure.", null)
-          }
-        } else {
-          result.error("NULL INPUT STRING", "Sign failure.", null)
+        if (text == null || privateKey == null) {
+          result.error("NULL INPUT STRING", "Decrypt failure.", null)
+          return
+        }
+        try {
+          val output = signData(text, privateKey)
+          result.success(output)
+        } catch (e: java.lang.Exception) {
+          e.printStackTrace()
+          result.error("UNAVAILABLE", "Sign failure.", null)
         }
       }
       "verify" -> {
         val text = call.argument<String>("plainText")
         val sign = call.argument<String>("signature")
         val publicKey = call.argument<String>("publicKey")
-        if (text != null && sign != null && publicKey != null) {
-          try {
-            val output = verifyData(text, sign, publicKey)
-            result.success(output)
-          } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-            result.error("UNAVAILABLE", "Verify failure.", null)
-          }
-        } else {
+        if (text == null || sign == null || publicKey == null) {
           result.error("NULL INPUT STRING", "Verify failure.", null)
+          return
+        }
+        try {
+          val output = verifyData(text, sign, publicKey)
+          result.success(output)
+        } catch (e: java.lang.Exception) {
+          e.printStackTrace()
+          result.error("UNAVAILABLE", "Verify failure.", null)
         }
       }
       "decryptWithPublicKey" -> {
         val text = call.argument<String>("plainText")
         val publicKey = call.argument<String>("publicKey")
-        if (text != null && publicKey != null) {
-          try {
-            val d = Base64.decode(text, Base64.DEFAULT)
-            val output = decryptStringWithPublicKey(d, publicKey)
-            result.success(output)
-          } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-            result.error("UNAVAILABLE", "Decrypt failure.", null)
-          }
-        } else {
+        if (text == null || publicKey == null) {
           result.error("NULL INPUT STRING", "Decrypt failure.", null)
+          return
+        }
+        try {
+          val d = Base64.decode(text, Base64.DEFAULT)
+          val output = decryptStringWithPublicKey(d, publicKey)
+          result.success(output)
+        } catch (e: java.lang.Exception) {
+          e.printStackTrace()
+          result.error("UNAVAILABLE", "Decrypt failure.", null)
         }
       }
       else -> result.notImplemented()
@@ -141,13 +125,13 @@ public class SimpleRsa2Plugin: FlutterPlugin, MethodCallHandler {
       val bytes = txt.toByteArray()
       val blockSize = cipher.blockSize
       val outBlockSize = cipher.getOutputSize(bytes.size)
-      val blocks: Int = Math.ceil(bytes.size / blockSize.toDouble()).toInt()
+      val blocks: Int = ceil(bytes.size / blockSize.toDouble()).toInt()
       var output = ByteArray(blocks * outBlockSize)
       var outputSize = 0
 
       for (i in 0 until blocks) {
         val offset = i * blockSize
-        val blockLength = Math.min(blockSize, bytes.size - offset)
+        val blockLength = min(blockSize, bytes.size - offset)
         val cryptoBlock = cipher.doFinal(bytes, offset, blockLength)
         System.arraycopy(cryptoBlock, 0, output, outputSize, cryptoBlock.size)
         outputSize += cryptoBlock.size
@@ -194,13 +178,13 @@ public class SimpleRsa2Plugin: FlutterPlugin, MethodCallHandler {
     cipher1.init(Cipher.DECRYPT_MODE, pubKey)
 
     val blockSize = cipher1.blockSize
-    val blocks : Int = Math.ceil(encryptedBytes.size / blockSize.toDouble()).toInt()
+    val blocks: Int = ceil(encryptedBytes.size / blockSize.toDouble()).toInt()
     var output = ByteArray(blocks * blockSize)
     var outputSize = 0
 
     for (i in 0 until blocks) {
       val offset = i * blockSize
-      val blockLength = Math.min(blockSize, encryptedBytes.size - offset)
+      val blockLength = min(blockSize, encryptedBytes.size - offset)
       val cryptoBlock = cipher1.doFinal(encryptedBytes, offset, blockLength)
       System.arraycopy(cryptoBlock, 0, output, outputSize, cryptoBlock.size)
       outputSize += cryptoBlock.size
