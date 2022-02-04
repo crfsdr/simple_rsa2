@@ -44,5 +44,9 @@ final verified = await verifyString(plainText, signedText, utf8.decode(base64.de
 print(verified ? 'true' : 'false');
 ```
 
+For flutter 2.10
+
+Add `ext.kotlin_version = '1.6.10` (or newer version) in android/build.gradle 
+
 ### Contributions
 [Adlan Arif Zakaria (adlanarifzr)](https://github.com/adlanarifzr) iOS compatibility, sign and verify method.

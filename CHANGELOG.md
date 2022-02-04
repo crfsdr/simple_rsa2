@@ -1,3 +1,7 @@
+## 1.0.3
+
+Remove of kotlin_version cause compatibility problems with flutter 2.10 (see readme)
+
 ## 1.0.2
 Upgrade to SwiftRSA 1.7.0
 
