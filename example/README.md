@@ -1,6 +1,6 @@
 # simple_rsa2_example
 
-A new Flutter project.
+Demonstrates how to use the simple_rsa2 plugin.
 
 ## Getting Started
 
